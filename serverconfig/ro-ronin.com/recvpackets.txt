@@ -1,0 +1,4 @@
+# Place server-specific recvpackets here.
+# Copy this folder to serverconfig/<server-name>/ and fill lengths.
+# Example line format (OpenKore):
+# 0071 28

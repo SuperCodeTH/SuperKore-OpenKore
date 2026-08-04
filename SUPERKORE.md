@@ -6,52 +6,29 @@
 SuperKore-OpenKore/
   README.md
   SUPERKORE.md
-  openkore/          ← ไฟล์ OpenKore ทั้งหมด (ชี้ Pilot มาที่นี่)
-    openkore.pl
-    control/
-    plugins/wsbridge/
-    tables/
-    ...
+  openkore/              ← ไฟล์ OpenKore ทั้งหมด (ชี้ Pilot มาที่นี่)
+  serverconfig/          ← recvpackets / จูนต่อเซิร์ฟ
+    _template/
+    eternal-origin.com/
+    ro-ronin.com/
 ```
 
-## ดาวน์โหลด / กู้คืนเมื่อไฟล์หาย
-
-**Clone**
+## ดาวน์โหลด / กู้คืน
 
 ```bash
 git clone https://github.com/SuperCodeTH/SuperKore-OpenKore.git
 ```
 
-ใน Pilot UI ตั้ง **โฟลเดอร์ OpenKore** เป็น:
+Pilot **โฟลเดอร์ OpenKore** = `/path/to/SuperKore-OpenKore/openkore`
 
-`/path/to/SuperKore-OpenKore/openkore`
+ZIP: https://github.com/SuperCodeTH/SuperKore-OpenKore/archive/refs/heads/main.zip  
+Releases: https://github.com/SuperCodeTH/SuperKore-OpenKore/releases
 
-**ดาวน์โหลด ZIP**
+## serverconfig (recvpackets ต่อเซิร์ฟ)
 
-- https://github.com/SuperCodeTH/SuperKore-OpenKore/archive/refs/heads/main.zip  
-  แตกแล้วใช้โฟลเดอร์ `SuperKore-OpenKore-main/openkore`
-- Releases: https://github.com/SuperCodeTH/SuperKore-OpenKore/releases
-
-## สิ่งที่รวมใน `openkore/`
-
-- OpenKore upstream (snapshot)
-- `plugins/wsbridge/` — อุโมงค์ SuperKore connector
-- `control/sys.txt` — โหลด `wsbridge`
-- `control/config.superkore.example.txt` — ตัวอย่างคีย์ bridge (ไม่มีรหัสผ่าน)
-
-## แพ็กเกจต่อเซิร์ฟ
-
-เซิร์ฟ RoPlay แต่ละตัวอาจจูน tables / packetver คนละแบบ  
-เจ้าของเก็บลิงก์แพ็กเกจใน Owner Admin ต่อเซิร์ฟ และอัปเดต repo นี้เมื่อแก้
+ดูรายละเอียดใน [`serverconfig/README.md`](./serverconfig/README.md)  
+เจ้าของอัปไฟล์จูนของแต่ละเซิร์ฟเข้าโฟลเดอร์ย่อย แล้วลูกค้าคัดลอกไปใช้กับ OpenKore
 
 ## ความปลอดภัย
 
-- ห้าม commit `username` / `password` / คีย์เช่า `sk_...`
-- config จริงของแต่ละ ID อยู่ใน Pilot: `~/.superkore/pilot/ok-profiles/<id>/control/`
-
-## อัปเดต
-
-```bash
-cd SuperKore-OpenKore
-git pull
-```
+ห้าม commit username / password / คีย์ `sk_...`

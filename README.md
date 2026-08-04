@@ -1,7 +1,10 @@
 # SuperKore-OpenKore
 
-Customer OpenKore package for [SuperKore](https://github.com/SuperCodeTH/SuperKore).
+Customer OpenKore package for SuperKore.
 
-OpenKore files live in **`openkore/`**.
+| Path | Contents |
+|------|----------|
+| `openkore/` | Full OpenKore tree (point Pilot here) |
+| `serverconfig/` | Per-server `recvpackets` and related tweaks |
 
-See [SUPERKORE.md](./SUPERKORE.md) for install / download / restore.
+See [SUPERKORE.md](./SUPERKORE.md).
