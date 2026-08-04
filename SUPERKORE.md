@@ -5,9 +5,9 @@
 ## ติดตั้ง / กู้คืนเมื่อไฟล์หาย
 
 ```bash
-git clone https://github.com/thanakon228/SuperKore-OpenKore.git
+git clone https://github.com/SuperCodeTH/SuperKore-OpenKore.git
 # หรือถ้ามีสิทธิ์ private:
-# git clone git@github.com:thanakon228/SuperKore-OpenKore.git
+# git clone git@github.com:SuperCodeTH/SuperKore-OpenKore.git
 ```
 
 ใน Pilot UI ตั้ง **โฟลเดอร์ OpenKore** เป็น path ที่ clone มา เช่น:
