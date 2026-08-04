@@ -1,0 +1,7 @@
+# SuperKore bridge keys — Pilot overlays these per profile automatically.
+# Keep here only as reference; do not put real passwords in git.
+wsBridge 1
+wsBridge_host 127.0.0.1
+wsBridge_port 9901
+wsBridge_proxy wss://m.example.com:8443
+XKore 0
