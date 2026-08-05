@@ -78,10 +78,35 @@ sub DESTROY {
 
 sub setWinDim {
 	my $self = shift;
-	my($wLeft, $wTop, $wRight, $wBottom) = $self->{out_con}->Window() or die "Can't find initial dimentions for the output window\n";
-	my($bCol, $bRow) = $self->{out_con}->Size() or die "Can't find dimentions for the output buffer\n";
-	$self->{out_con}->Window(1, $wLeft, $bRow - $wBottom - 1, $wRight, $bRow - 1);# or die "Can't set dimentions for the output window\n";
-	@{$self}{qw(left out_top right in_line)} = $self->{out_con}->Window() or die "Can't find new dimentions for the output window\n";
+	# start.exe + redirected stdout often has no real console → Window()/Size()
+	# return undefs. Avoid "Use of uninitialized value" spam (lines ~83/85).
+	my @win = eval { $self->{out_con}->Window() };
+	@win = () if $@ || !@win;
+	my @size = eval { $self->{out_con}->Size() };
+	@size = () if $@ || !@size;
+	my ($wLeft, $wTop, $wRight, $wBottom) = @win;
+	my ($bCol, $bRow) = @size;
+	my $have_dims =
+		defined $wLeft && defined $wTop && defined $wRight && defined $wBottom
+		&& defined $bCol && defined $bRow
+		&& $bRow > 0 && $wRight >= $wLeft;
+
+	if ($have_dims) {
+		eval {
+			$self->{out_con}->Window(1, $wLeft, $bRow - $wBottom - 1, $wRight, $bRow - 1);
+		};
+		my @after = eval { $self->{out_con}->Window() };
+		if (!$@ && @after >= 4
+			&& defined $after[0] && defined $after[1]
+			&& defined $after[2] && defined $after[3]) {
+			@{$self}{qw(left out_top right in_line)} = @after[0, 1, 2, 3];
+		} else {
+			@{$self}{qw(left out_top right in_line)} = ($wLeft, $wTop, $wRight, $wBottom);
+		}
+	} else {
+		# Sensible fallback geometry when console dims are unavailable
+		@{$self}{qw(left out_top right in_line)} = (0, 0, 79, 24);
+	}
 	$self->{out_bot} = $self->{in_line} - 1; #one line above the input line
 	$self->{out_line} = $self->{in_line};
 	$self->{out_col} = $self->{in_pos} = $self->{left};
@@ -293,7 +318,13 @@ sub writeOutput {
 	my ($self, $type, $message, $domain) = @_;
 
 	#wrap the text
-	local($Text::Wrap::columns) = $self->{right} - $self->{left} + 1;
+	# Text::Wrap requires columns >= 2; left/right can be undef under start.exe /
+	# redirected stdout before Window() dims are ready — caused customer log spam.
+	my $left = defined $self->{left} ? $self->{left} : 0;
+	my $right = defined $self->{right} ? $self->{right} : 79;
+	my $cols = $right - $left + 1;
+	$cols = 2 if !defined $cols || $cols < 2;
+	local($Text::Wrap::columns) = $cols;
 	my ($endspace) = $message =~ /(\s*)$/; #Save trailing whitespace: wrap kills spaces near wraps, especialy at the end of stings, so "\n" becomes "", not what we want
 	$message = wrap('', '', $message);
 	$message =~ s/\s*$/$endspace/; #restore the whitespace
@@ -310,21 +341,36 @@ sub writeOutput {
 	}
 	$self->{last_line_end} = ($message =~ /\n$/) ? 1 : 0;
 
-	my $ret = $self->{out_con}->Scroll(
-		$self->{left}, 0, $self->{right}, $self->{out_bot},
-		0, 0-$lines, ord(' '), $main::ATTR_NORMAL, 
-		$self->{left}, 0, $self->{right}, $self->{out_bot}
-	);
+	# Reuse clamped wrap dims so Scroll/Cursor never see undef (spam ~320/326).
+	my $out_bot = defined $self->{out_bot} ? $self->{out_bot} : 23;
+	my $out_line = defined $self->{out_line} ? $self->{out_line} : $out_bot;
+	my $out_col = defined $self->{out_col} ? $self->{out_col} : $left;
 
-	my ($ocx, $ocy) = $self->{out_con}->Cursor();
-	$self->{out_con}->Cursor($self->{out_col}, $self->{out_line} - $lines);
+	my $ret = eval {
+		$self->{out_con}->Scroll(
+			$left, 0, $right, $out_bot,
+			0, 0-$lines, ord(' '), $main::ATTR_NORMAL,
+			$left, 0, $right, $out_bot
+		);
+	};
+
+	my ($ocx, $ocy) = eval { $self->{out_con}->Cursor() };
+	$ocx = 0 unless defined $ocx;
+	$ocy = 0 unless defined $ocy;
+	eval { $self->{out_con}->Cursor($out_col, $out_line - $lines) };
 	$self->setColor($type, $domain);
 	#$self->{out_con}->Write($message);
 	Utils::Win32::printConsole($message);
 	$self->color('reset');
-	($self->{out_col}, $self->{out_line}) = $self->{out_con}->Cursor();
+	my @cur = eval { $self->{out_con}->Cursor() };
+	if (!$@ && @cur >= 2 && defined $cur[0] && defined $cur[1]) {
+		($self->{out_col}, $self->{out_line}) = @cur;
+	} else {
+		$self->{out_col} = $out_col;
+		$self->{out_line} = $out_line;
+	}
 	$self->{out_line} -= $self->{last_line_end} - 1;
-	$self->{out_con}->Cursor($ocx, $ocy);
+	eval { $self->{out_con}->Cursor($ocx, $ocy) };
 }
 
 sub setColor {
